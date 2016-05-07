@@ -154,7 +154,7 @@ public class FbCommunicator {
                 }
         );
         Bundle parameters = new Bundle();
-        parameters.putString("fields","id,name,picture.type(large)");
+        parameters.putString("fields","id,name,picture.width(400).height(400)");
         req.setParameters(parameters);
         req.executeAsync();
     }

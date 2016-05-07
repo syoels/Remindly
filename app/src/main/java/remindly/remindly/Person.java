@@ -10,10 +10,10 @@ import java.util.Date;
  */
 public class Person {
     public int count;
-    public String pid, name, pictureUrl, work;
-    public ArrayList<String> notifications;
+    public String pid, name, fbPicUrl, mmPicPath, work;
+    JSONArray notifications;
     public Date bDate, lastSeen;
     public boolean isFB;
     JSONArray wishList;
-
 }
+
