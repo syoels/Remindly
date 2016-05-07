@@ -1,5 +1,6 @@
 package remindly.remindly;
 
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ExpandableListAdapter;
@@ -13,7 +14,7 @@ import java.util.Map;
 
 public class table extends AppCompatActivity {
     private static final String NAME = "NAME";
-
+    private static final String SPNAME = "PREF";
     private ExpandableListAdapter mAdapter;
 
     private String group[] = {"Development" , "Data Process Team"};
@@ -53,4 +54,6 @@ public class table extends AppCompatActivity {
         expandableListView.setAdapter(mAdapter);
 
     }
+
+
 }

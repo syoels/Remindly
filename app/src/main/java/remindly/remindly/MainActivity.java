@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.v("isLoginSuccessfull: ", Boolean.toString(isLoginSuccessfull));
 
                         if (isLoginSuccessfull) {
+                            startService(new Intent(ac, MymymeService.class));
                             Intent intent_success = new Intent(MainActivity.this, table.class);
                             startActivity(intent_success);
                             finish();
