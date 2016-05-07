@@ -121,10 +121,9 @@ public class DBOpenhelper extends SQLiteOpenHelper {
                 pips.add(p);
             }
             while (crsr.moveToNext());
-            db.close();
-            return pips;
         }
-
+        db.close();
+        return pips;
     }
 
     public boolean addNotification(int n) {
