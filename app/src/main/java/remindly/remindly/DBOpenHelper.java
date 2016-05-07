@@ -6,15 +6,19 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
-public class DBOpenhelper extends SQLiteOpenHelper {
+public class DBOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "our_db";
     private static final int DATABASE_VERSION = 2;
 
@@ -44,7 +48,7 @@ public class DBOpenhelper extends SQLiteOpenHelper {
                     NOTIFICATIONS_JSON +
                     ");";
 
-    DBOpenhelper(Context context) {
+    DBOpenHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -62,10 +66,11 @@ public class DBOpenhelper extends SQLiteOpenHelper {
         ContentValues personValues = new ContentValues();
 
         String PID = (p.pid.length() > 0) ? p.pid : null,
-        NAME = (p.name.length() > 0) ? p.name : null,
-        FB_URL = (p.fbPicUrl.length() > 0) ? p.fbPicUrl : null,
-        MM_PATH = (p.mmPicPath.length() > 0) ? p.mmPicPath : null,
-        WORK = (p.work.length() > 0) ? p.work : null;
+            NAME = (p.name.length() > 0) ? p.name : null,
+            FB_URL = (p.fbPicUrl.length() > 0) ? p.fbPicUrl : null,
+            MM_PATH = (p.mmPicPath.length() > 0) ? p.mmPicPath : null,
+            WORK = (p.work.length() > 0) ? p.work : null;
+
         String WISHLIST_JSON = null, NOTIFICATIONS_JSON = null;
         if (p.wishList.length() > 0) {
             WISHLIST_JSON = p.wishList.toString();
@@ -104,7 +109,7 @@ public class DBOpenhelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ArrayList<Person> pips = new ArrayList<Person>();
         String query = "SELECT * FROM " + TABLE_NAME + " ORDER BY LAST_SEEN DESC LIMIT " + String.valueOf(n);
-        Cursor crsr = db.rawQuery( query, null );
+        Cursor crsr = db.rawQuery(query, null);
         if (crsr.getCount() > 0 && crsr.moveToFirst()) {
             do {
                 Person p = new Person();
@@ -115,7 +120,7 @@ public class DBOpenhelper extends SQLiteOpenHelper {
                 p.bDate = new Date(crsr.getString(5));
                 p.work = crsr.getString(6);
                 p.wishList = new JSONArray(crsr.getString(7));
-                p.lastSeen = new Date(crsr.getString(8));
+                p.lastSeen = new Date(crsr.getString(8)); //TODO: how to create date from string? http://stackoverflow.com/questions/16208121/java-create-date-object-using-a-value-string
                 p.count = crsr.getInt(9);
                 p.notifications = new JSONArray(crsr.getString(10));
                 pips.add(p);
@@ -126,49 +131,79 @@ public class DBOpenhelper extends SQLiteOpenHelper {
         return pips;
     }
 
-    public boolean addNotification(int n) {
+    public boolean addNotification(String pid, int n) {
+        JSONArray arr;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor mCursor = db.query(true, TABLE_NAME, new String[] {
+                        NOTIFICATIONS_JSON}, PID + "=" + pid,
+                null, null, null, null, null);
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+            try {
+                arr = new JSONArray(mCursor.getString(10));
 
+            }catch(Exception e){
+                Log.d("MymeDB","JSON PARSE ERROR");
+                return false;
+            }
+            //arr.put();
+            db = this.getWritableDatabase();
+            ContentValues args = new ContentValues();
+            args.put(NOTIFICATIONS_JSON, arr.toString());
+            Boolean SUCC = db.update(TABLE_NAME, args, PID + "=" + pid, null) > 0;
+            db.close();
+            return SUCC;
+        }
+        return false;
     }
 
-    public boolean delNotification(int notIdx) {
+    public boolean delNotification(String pid, int notIdx) throws JSONException {
+        JSONArray arr;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor mCursor = db.query(true, TABLE_NAME, new String[] {
+                        NOTIFICATIONS_JSON}, PID + "=" + pid,
+                null, null, null, null, null);
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+            try {
+                arr = new JSONArray(mCursor.getString(10));
 
+            }catch(Exception e){
+                Log.d("MymeDB", "JSON PARSE ERROR");
+                return false;
+            }
+            arr.remove(notIdx);
+            db = this.getWritableDatabase();
+            ContentValues args = new ContentValues();
+            args.put(NOTIFICATIONS_JSON, arr.toString());
+            Boolean SUCC = db.update(TABLE_NAME, args, PID + "=" + pid, null) > 0;
+            db.close();
+            return SUCC;
+        }
+        return false;
     }
 
+    Set<String> stringCols = new HashSet<String>((Arrays.asList(new String[]{"PID", "NAME TEXT", "FB_URL TEXT", "MM_PATH TEXT", "B_DATE DATE", "WORK TEXT", "WISHLIST_JSON TEXT", "LAST_SEEN TIMESTAMP", "COUNT INTEGER", "NOTIFICATIONS_JSON TEXT"})));
     public boolean editColumn(String pid, String cName, String val){
-
+        if(stringCols.contains(cName)){
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues args = new ContentValues();
+            args.put(cName, val);
+            Boolean SUCC = db.update(TABLE_NAME, args, PID + "=" + pid, null) > 0;
+            db.close();
+            return SUCC;
+        }
+        return false;
     }
 
     public boolean deleteAll(){
-
-    }
-
-
-
-    public ArrayList<TodoItem> GetAll() {
-        String selectQuery = "SELECT * FROM " + TABLE_NAME;
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
-        ArrayList<TodoItem> list = new ArrayList<TodoItem>();
-        Date due;
-        if (cursor.getCount() > 0 && cursor.moveToFirst()) {
-            do {
-                int TEXT_IDX = 1;
-                String title = cursor.getString(TEXT_IDX);
-                int DUE_IDX = 2;
-                long milliSecond = cursor.getLong(DUE_IDX);
-                if (milliSecond != 0) {
-                    due = new Date(cursor.getLong(2));
-                    list.add(new TodoItem(due, title));
-                } else {
-                    list.add(new TodoItem(null, title));
-                }
-
-            } while (cursor.moveToNext());
-        }
-
-        cursor.close();
+        String delAllQuery = "TRUNCATE TABLE" + TABLE_NAME;
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL(delAllQuery);
         db.close();
-        return list;
+        return true;
     }
+
+
 
 }
