@@ -3,6 +3,7 @@ package remindly.remindly;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -38,55 +39,49 @@ public class FbCommunicator {
 
     //
     public static void login(Activity ac, final loginListener listener){
-        Log.d("FB login", "1");
+
+        LoginManager.getInstance().logOut(); //Log out to re-enable log in //TODO: remove when not demo.
+
         //Change these permissions to add functionality - https://developers.facebook.com/docs/facebook-login/permissions
         LoginManager.getInstance().logInWithReadPermissions(ac, Arrays.asList("email",
-                "user_photos", "public_profile", "user_friends", "user_about_me"));
-        Log.d("FB login", "2");
+                "user_photos", "public_profile", "user_friends", "user_about_me", "user_birthday",
+                "user_work_history", "user_relationship_details"));
         LoginManager.getInstance().registerCallback(callbackmanager,
                 new FacebookCallback<LoginResult>() {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
-                        Log.d("FB login", "3");
                         GraphRequest.newMeRequest(
                                 loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
                                     @Override
                                     public void onCompleted(JSONObject json, GraphResponse response) {
-                                        Log.d("FB login", "4");
                                         if (response.getError() != null) {
-                                            Log.d("FB login", "5");
                                             // handle error
                                         } else {
-                                            Log.d("FB login", "6");
                                             try {
-                                                Log.d("FB login", "7");
-                                                // On success - svae id & name of user tunning the app.
+                                                // On success - save id & name of user running the app.
                                                 String jsonresult = String.valueOf(json);
                                                 fb_id = json.getString("id");
                                                 fb_name = json.getString("name");
-                                                Log.i("FB token", AccessToken.getCurrentAccessToken().getToken());
+
+                                                Log.d("FB token", AccessToken.getCurrentAccessToken().getToken());
+
                                                 listener.onLoginComplete(true);
                                             } catch (JSONException e) {
-                                                Log.d("FB login", "8");
                                                 listener.onLoginComplete(false);
                                                 e.printStackTrace();
                                             }
                                         }
                                     }
-
                                 }).executeAsync();
                     }
 
                     @Override
                     public void onCancel() {
-
-                        Log.d("FB login", "9");
                         listener.onLoginComplete(false);
                     }
 
                     @Override
                     public void onError(FacebookException error) {
-                        Log.d("FB login", "10");
                         listener.onLoginComplete(false);
                     }
                 });
@@ -100,7 +95,7 @@ public class FbCommunicator {
     // return List of friend ids and run callback
     public static void friendsIds(final facebookIdsListener idListener){
         /* make the API call */
-        new GraphRequest(
+        GraphRequest req = new GraphRequest(
                 AccessToken.getCurrentAccessToken(),
                 "/me/invitable_friends",
                 null,
@@ -108,7 +103,6 @@ public class FbCommunicator {
                 new GraphRequest.Callback() {
                     public void onCompleted(GraphResponse response) {
                         JSONObject res = response.getJSONObject();
-                        Log.d("FB FRIENDS: ", res.toString());
                         try {
                             JSONArray all = (JSONArray)(res.get("data"));
                             ArrayList<String> ids = new ArrayList<String>();
@@ -116,7 +110,6 @@ public class FbCommunicator {
                                 JSONObject friend = all.getJSONObject(i);
                                 ids.add(friend.get("id").toString());
                                 //http://stackoverflow.com/questions/24417232/facebook-invitable-friends
-                                Log.d("FB friend ID: ", friend.get("id").toString());
                             }
                             idListener.onFacebookIdsReceived(ids);
                         } catch (JSONException e) {
@@ -124,14 +117,18 @@ public class FbCommunicator {
                         }
                     }
                 }
-        ).executeAsync();
+        );
+        Bundle parameters = new Bundle();
+        parameters.putString("fields","id,name,birthday");
+        req.setParameters(parameters);
+        req.executeAsync();
     }
 
     // Return dictionary(name => profile pic url) and run callback
-    public static void friendPictures(final facebookPhotosListener photosListener) throws JSONException {
+    public static void friendPictures(final facebookPhotosListener photosListener){
 
        /* make the API call */
-        new GraphRequest(
+        GraphRequest req = new GraphRequest(
                 AccessToken.getCurrentAccessToken(),
                 "/me/invitable_friends",
                 null,
@@ -140,7 +137,6 @@ public class FbCommunicator {
                     public void onCompleted(GraphResponse response) {
                         JSONObject res = response.getJSONObject();
                         try {
-
                             JSONArray all = (JSONArray)(res.get("data"));
                             HashMap<String, String> pictures = new HashMap<String, String>();
                             for(int i=0; i < all.length(); i++){
@@ -149,7 +145,6 @@ public class FbCommunicator {
                                 JSONObject picData = (JSONObject)pic.get("data");
                                 pictures.put(friend.get("name").toString(), picData.get("url").toString());
                                         //http://stackoverflow.com/questions/24417232/facebook-invitable-friends
-                                        Log.d("FB friend ID: ", friend.get("id").toString());
                             }
                             photosListener.onFacebookPhotosReceived(pictures);
                         } catch (JSONException e) {
@@ -157,8 +152,14 @@ public class FbCommunicator {
                         }
                     }
                 }
-        ).executeAsync();
+        );
+        Bundle parameters = new Bundle();
+        parameters.putString("fields","id,name,picture.type(large)");
+        req.setParameters(parameters);
+        req.executeAsync();
     }
+
+
 
 //Listeners
 public interface loginListener{
