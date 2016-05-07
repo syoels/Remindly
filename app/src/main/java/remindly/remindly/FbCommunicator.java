@@ -38,28 +38,36 @@ public class FbCommunicator {
 
     //
     public static void login(Activity ac, final loginListener listener){
-
+        Log.d("FB login", "1");
         //Change these permissions to add functionality - https://developers.facebook.com/docs/facebook-login/permissions
         LoginManager.getInstance().logInWithReadPermissions(ac, Arrays.asList("email",
                 "user_photos", "public_profile", "user_friends", "user_about_me"));
+        Log.d("FB login", "2");
         LoginManager.getInstance().registerCallback(callbackmanager,
                 new FacebookCallback<LoginResult>() {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
+                        Log.d("FB login", "3");
                         GraphRequest.newMeRequest(
                                 loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
                                     @Override
                                     public void onCompleted(JSONObject json, GraphResponse response) {
+                                        Log.d("FB login", "4");
                                         if (response.getError() != null) {
+                                            Log.d("FB login", "5");
                                             // handle error
                                         } else {
+                                            Log.d("FB login", "6");
                                             try {
+                                                Log.d("FB login", "7");
                                                 // On success - svae id & name of user tunning the app.
                                                 String jsonresult = String.valueOf(json);
                                                 fb_id = json.getString("id");
                                                 fb_name = json.getString("name");
+                                                Log.i("FB token", AccessToken.getCurrentAccessToken().getToken());
                                                 listener.onLoginComplete(true);
                                             } catch (JSONException e) {
+                                                Log.d("FB login", "8");
                                                 listener.onLoginComplete(false);
                                                 e.printStackTrace();
                                             }
@@ -71,11 +79,14 @@ public class FbCommunicator {
 
                     @Override
                     public void onCancel() {
+
+                        Log.d("FB login", "9");
                         listener.onLoginComplete(false);
                     }
 
                     @Override
                     public void onError(FacebookException error) {
+                        Log.d("FB login", "10");
                         listener.onLoginComplete(false);
                     }
                 });
