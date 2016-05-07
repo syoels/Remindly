@@ -37,7 +37,7 @@ public class FbCommunicator {
     }
 
     //
-    public static void login(Activity ac){
+    public static void login(Activity ac, final loginListener listener){
 
         //Change these permissions to add functionality - https://developers.facebook.com/docs/facebook-login/permissions
         LoginManager.getInstance().logInWithReadPermissions(ac, Arrays.asList("email",
@@ -58,7 +58,9 @@ public class FbCommunicator {
                                                 String jsonresult = String.valueOf(json);
                                                 fb_id = json.getString("id");
                                                 fb_name = json.getString("name");
+                                                listener.onLoginComplete(true);
                                             } catch (JSONException e) {
+                                                listener.onLoginComplete(false);
                                                 e.printStackTrace();
                                             }
                                         }
@@ -69,10 +71,12 @@ public class FbCommunicator {
 
                     @Override
                     public void onCancel() {
+                        listener.onLoginComplete(false);
                     }
 
                     @Override
                     public void onError(FacebookException error) {
+                        listener.onLoginComplete(false);
                     }
                 });
     }
@@ -145,12 +149,16 @@ public class FbCommunicator {
         ).executeAsync();
     }
 
-//Listener
+//Listeners
+public interface loginListener{
+    public void onLoginComplete(boolean isLoginSuccessfull);
+}
 public interface facebookIdsListener{
     public void onFacebookIdsReceived(List<String> ids);
 }
 public interface facebookPhotosListener{
     public void onFacebookPhotosReceived(HashMap<String, String> name_url);
 }
+
 
 }

@@ -69,7 +69,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void connectToFb(View v){
-        FbCommunicator.login(this);
+        FbCommunicator.login(this, new FbCommunicator.loginListener() {
+            @Override
+            public void onLoginComplete(boolean isLoginSuccessfull) {
+
+            }
+        });
     }
 
 
