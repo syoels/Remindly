@@ -1,4 +1,4 @@
-package com.example.yoels.remindly;
+package remindly.remindly;
 
 import android.content.Context;
 import android.content.Intent;

@@ -2,11 +2,11 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.0 rc2"
+    buildToolsVersion "23.0.3"
 
     defaultConfig {
         applicationId "remindly.remindly"
-        minSdkVersion 17
+        minSdkVersion 21
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -21,7 +21,7 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:24.0.0-alpha1'
+    compile 'com.android.support:appcompat-v7:23.+'
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
     compile 'com.getpebble:pebblekit:3.0.0'
 }
@@ -30,3 +30,15 @@ repositories {
     mavenCentral()
     maven { url "http://oss.sonatype.org/comtemt/groups/public"}
 }
+
+
+repositories {
+    maven {
+        url 'https://dl.bintray.com/orcam/maven'
+    }
+}
+
+dependencies {
+    compile 'com.orcam.orcam_sdk:my-me-sdk:0.1.0'
+}
+
